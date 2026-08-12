@@ -3,6 +3,8 @@ import { tasks } from "@/db/schema";
 import { AddTaskForm } from "@/components/AddTaskForm";
 import { TaskItem } from "@/components/TaskItem";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const rows = await db.select().from(tasks);
 
