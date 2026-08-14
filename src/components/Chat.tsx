@@ -14,7 +14,7 @@ export function Chat() {
 
     const { supported, listening, transcript, start, stop } = useSpeechRecognition();
 
-    // Recopie la transcription dans le champ de saisie, au fil de la parole
+    // The only useEffect affected to the voice: write the transcript in the field
     useEffect(() => {
         if (transcript) setInput(transcript);
     }, [transcript]);
@@ -24,18 +24,24 @@ export function Chat() {
         if (!text || loading) return;
 
         const next: Msg[] = [...messages, { role: "user", content: text }];
-        setMessages(next);           // affiche tout de suite le message de l'utilisateur
+        setMessages(next);
         setInput("");
         setLoading(true);
         try {
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: next }),  // on envoie l'historique
+                body: JSON.stringify({ messages: next }),
             });
             const data = await res.json();
             setMessages([...next, { role: "assistant", content: data.reply }]);
-            if (data.didMutate) router.refresh();        // la liste au-dessus se met à jour
+            if (data.didMutate) router.refresh();
+        } catch (e) {
+            console.error("Erreur d'envoi:", e);
+            setMessages([
+                ...next,
+                { role: "assistant", content: "Désolé, une erreur est survenue." },
+            ]);
         } finally {
             setLoading(false);
         }
@@ -67,8 +73,6 @@ export function Chat() {
                     placeholder="écris ou dicte une tâche…"
                     className="flex-1 rounded border px-3 py-2"
                 />
-
-                {/* Le bouton micro n'apparaît que si le navigateur le supporte */}
                 {supported && (
                     <button
                         type="button"
@@ -82,14 +86,13 @@ export function Chat() {
                         {listening ? "● Écoute…" : "Parler"}
                     </button>
                 )}
-
-                <button
-                    onClick={send}
-                    disabled={loading}
-                    className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-                >
-                    Envoyer
-                </button>
+            <button
+                onClick={send}
+                disabled={loading}
+                className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+            >
+                Envoyer
+            </button>
             </div>
         </div>
     );

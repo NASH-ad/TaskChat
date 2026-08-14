@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
-// --- Types minimaux pour l'API Web Speech (absente des types TS standard) ---
-type SpeechResultEvent = {
-    results: ArrayLike<ArrayLike<{ transcript: string }>>;
-};
+type SpeechResultEvent = { results: ArrayLike<ArrayLike<{ transcript: string }>> };
 type Recognition = {
     lang: string;
     continuous: boolean;
@@ -16,11 +13,10 @@ type Recognition = {
 };
 type RecognitionCtor = new () => Recognition;
 
-// Récupère le constructeur, quel que soit le préfixe navigateur
-function getRecognitionCtor(): RecognitionCtor | null {
+function getCtor(): RecognitionCtor | null {
     const w = window as unknown as {
-    SpeechRecognition?: RecognitionCtor;
-    webkitSpeechRecognition?: RecognitionCtor;
+        SpeechRecognition?: RecognitionCtor;
+        webkitSpeechRecognition?: RecognitionCtor;
     };
     return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
@@ -31,36 +27,31 @@ export function useSpeechRecognition() {
     const [transcript, setTranscript] = useState("");
     const recognitionRef = useRef<Recognition | null>(null);
 
-  // Au montage : vérifie si le navigateur supporte la reconnaissance vocale
     useEffect(() => {
-        setSupported(getRecognitionCtor() !== null);
+        setSupported(getCtor() !== null);
     }, []);
 
     function start() {
-        const Ctor = getRecognitionCtor();
+        const Ctor = getCtor();
         if (!Ctor || listening) return;
 
         const recognition = new Ctor();
-        recognition.lang = "fr-FR";          // reconnaissance en français
-        recognition.continuous = false;      // s'arrête après une phrase
-        recognition.interimResults = true;   // renvoie le texte au fil de la parole
+        recognition.lang = "fr-FR";
+        recognition.continuous = false;
+        recognition.interimResults = true;
 
         recognition.onresult = (e) => {
             let text = "";
-            for (let i = 0; i < e.results.length; i++) {
-                text += e.results[i][0].transcript; // [0] = meilleure hypothèse
-            }
-            console.log("🎤 onresult:", text);
+            for (let i = 0; i < e.results.length; i++)
+                text += e.results[i][0].transcript;
             setTranscript(text);
         };
         recognition.onend = () => {
             setListening(false);
-            console.log("🎤 onend");
-        }
+        };
         recognition.onerror = (ev) => {
             setListening(false);
-            console.log("🎤 onerror:", ev);
-        }
+        };
 
         recognitionRef.current = recognition;
         setTranscript("");
