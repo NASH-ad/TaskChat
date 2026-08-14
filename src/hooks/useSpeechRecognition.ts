@@ -12,7 +12,7 @@ type Recognition = {
     stop: () => void;
     onresult: ((e: SpeechResultEvent) => void) | null;
     onend: (() => void) | null;
-    onerror: (() => void) | null;
+    onerror: ((e: unknown) => void) | null;
 };
 type RecognitionCtor = new () => Recognition;
 
@@ -50,10 +50,17 @@ export function useSpeechRecognition() {
             for (let i = 0; i < e.results.length; i++) {
                 text += e.results[i][0].transcript; // [0] = meilleure hypothèse
             }
+            console.log("🎤 onresult:", text);
             setTranscript(text);
         };
-        recognition.onend = () => setListening(false);
-        recognition.onerror = () => setListening(false);
+        recognition.onend = () => {
+            setListening(false);
+            console.log("🎤 onend");
+        }
+        recognition.onerror = (ev) => {
+            setListening(false);
+            console.log("🎤 onerror:", ev);
+        }
 
         recognitionRef.current = recognition;
         setTranscript("");
