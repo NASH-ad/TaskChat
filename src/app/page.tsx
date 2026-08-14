@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { AddTaskForm } from "@/components/AddTaskForm";
 import { TaskItem } from "@/components/TaskItem";
+import { Chat } from "@/components/Chat";
 
 export const dynamic = "force-dynamic";
 
@@ -12,12 +13,12 @@ export default async function Home() {
     <main className="mx-auto max-w-md p-6">
       <h1 className="mb-4 text-2xl font-bold">TaskChat</h1>
       <AddTaskForm />
-      <p className="mb-2 text-sm text-gray-500">{rows.length} tâche(s)</p>
       <ul className="space-y-2">
         {rows.map((t) => (
           <TaskItem key={t.id} task={t} />
         ))}
       </ul>
+      <Chat />
     </main>
   );
 }
